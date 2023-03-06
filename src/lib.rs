@@ -1,6 +1,4 @@
-#![feature(box_into_raw_non_null)]
 #![allow(dead_code)]
-#![feature(map_get_key_value)]
 
 //! [X-fast Trie](https://en.wikipedia.org/wiki/X-fast_trie) is a bitwise trie to store a bounded domain of integers.
 //!
@@ -147,7 +145,7 @@ impl<T> Xfast<T> {
         };
         // insert the root node in the trie at level 0
         let root_node = TrieNode::new_internal(0);
-        let root_node = Box::into_raw_non_null(root_node);
+        let root_node = NonNull::from(Box::leak(root_node));
         new_trie.level_maps[0].insert(0, root_node);
         new_trie
     }
@@ -333,7 +331,7 @@ impl<T> Xfast<T> {
             let prefix = key >> (max_levels - level);
             if let None = self.level_maps[level].get(&prefix) {
                 let temp_node = TrieNode::new_internal(level);
-                let temp_node = Box::into_raw_non_null(temp_node);
+                let temp_node = NonNull::from(Box::leak(temp_node));
                 self.level_maps[level].insert(prefix, temp_node);
                 // add to the right child if the bit is 1 at that index else make it the left child
                 if (prefix & 1) != 0 {
@@ -429,7 +427,7 @@ impl<T> Xfast<T> {
     pub fn insert_key(&mut self, key: usize, value: T) {
         //create a new node with key and val
         let new_node = TrieNode::new(key, value, self.nr_levels);
-        let new_node = Some(Box::into_raw_non_null(new_node));
+        let new_node = Some(NonNull::from(Box::leak(new_node)));
         //find predecessor and successor for the new node
         let predecessor = self.find_predecessor(key);
         let successor = self.find_successor(key);
